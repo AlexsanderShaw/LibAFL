@@ -1,18 +1,9 @@
 use std::env;
 
 pub mod aarch64;
+pub mod amd64;
 pub mod arm;
-pub mod i386;
-pub mod x86_64;
-
-#[cfg(cpu_target = "aarch64")]
-pub use aarch64::*;
-#[cfg(cpu_target = "arm")]
-pub use arm::*;
-#[cfg(cpu_target = "i386")]
-pub use i386::*;
-#[cfg(cpu_target = "x86_64")]
-pub use x86_64::*;
+pub mod x86;
 
 pub mod elf;
 
@@ -219,12 +210,19 @@ pub fn python_module(py: Python, m: &PyModule) -> PyResult<()> {
         emu::remove_hook(addr);
     }
 
-    let regsm = PyModule::new(py, "regs")?;
-    for r in Regs::iter() {
+    let x86m = PyModule::new(py, "x86")?;
+    for r in x86::X86Regs::iter() {
         let v: i32 = r.into();
-        regsm.add(&format!("{:?}", r), v)?;
+        x86m.add(&format!("{:?}", r), v)?;
     }
-    m.add_submodule(regsm)?;
+    m.add_submodule(x86m)?;
+
+    let amd64m = PyModule::new(py, "amd64")?;
+    for r in amd64::Amd64Regs::iter() {
+        let v: i32 = r.into();
+        amd64m.add(&format!("{:?}", r), v)?;
+    }
+    m.add_submodule(amd64m)?;
 
     let mmapm = PyModule::new(py, "mmap")?;
     for r in emu::MmapPerms::iter() {

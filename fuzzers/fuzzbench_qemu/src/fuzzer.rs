@@ -40,6 +40,7 @@ use libafl::{
     Error,
 };
 use libafl_qemu::{
+    amd64::Amd64Regs,
     asan::QemuAsanHelper,
     cmplog,
     cmplog::{CmpLogObserver, QemuCmpLogHelper},
@@ -48,7 +49,7 @@ use libafl_qemu::{
     elf::EasyElf,
     emu, filter_qemu_args, init_with_asan,
     snapshot::QemuSnapshotHelper,
-    MmapPerms, QemuExecutor, Regs,
+    MmapPerms, QemuExecutor,
 };
 
 /// The fuzzer main
@@ -174,10 +175,10 @@ fn fuzz(
 
     println!(
         "Break at {:#x}",
-        emu::read_reg::<_, u64>(Regs::Rip).unwrap()
+        emu::read_reg::<_, u64>(Amd64Regs::Rip).unwrap()
     );
 
-    let stack_ptr: u64 = emu::read_reg(Regs::Rsp).unwrap();
+    let stack_ptr: u64 = emu::read_reg(Amd64Regs::Rsp).unwrap();
     let mut ret_addr = [0u64];
     emu::read_mem(stack_ptr, &mut ret_addr);
     let ret_addr = ret_addr[0];
@@ -292,10 +293,10 @@ fn fuzz(
 
         emu::write_mem(input_addr, buf);
 
-        emu::write_reg(Regs::Rdi, input_addr).unwrap();
-        emu::write_reg(Regs::Rsi, len).unwrap();
-        emu::write_reg(Regs::Rip, test_one_input_ptr).unwrap();
-        emu::write_reg(Regs::Rsp, stack_ptr).unwrap();
+        emu::write_reg(Amd64Regs::Rdi, input_addr).unwrap();
+        emu::write_reg(Amd64Regs::Rsi, len).unwrap();
+        emu::write_reg(Amd64Regs::Rip, test_one_input_ptr).unwrap();
+        emu::write_reg(Amd64Regs::Rsp, stack_ptr).unwrap();
 
         emu::run();
 
